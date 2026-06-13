@@ -1,0 +1,23 @@
+# INVA — Intelligent Network Vulnerability Analyser
+# Install all dependencies with:  pip install -r requirements.txt
+
+# Web framework
+flask>=3.0.0
+
+# HTTP requests (threat intelligence feeds, geo-IP, NVD API)
+requests>=2.31.0
+
+# Machine learning
+scikit-learn>=1.4.0
+numpy>=1.26.0
+pandas>=2.0.0
+joblib>=1.3.0
+
+# SHAP explainability
+shap>=0.44.0
+
+# PDF report generation
+reportlab>=4.1.0
+
+# Charts inside PDF
+matplotlib>=3.8.0

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scan Comparison | INVA</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-brand">
+    <div class="brand-hex">I</div>
+    <span class="brand-name">INVA</span>
+    <span class="brand-tagline">Intelligent Network Vulnerability Analyser</span>
+  </div>
+  <div class="nav-links">
+    <a href="/" class="nav-link">← Dashboard</a>
+  </div>
+</nav>
+
+<main class="container">
+
+  <div style="margin-bottom:1.5rem">
+    <div style="font-size:22px;font-weight:700;color:var(--text)">Scan Delta Analysis</div>
+    <div style="font-size:13px;color:var(--text3);margin-top:4px">
+      Comparing Scan #{{ scan1.id }} vs Scan #{{ scan2.id }} — security posture change over time
+    </div>
+  </div>
+
+  <!-- SCAN HEADER CARDS -->
+  <div class="compare-grid">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="ct-icon">◉</span> Scan #{{ scan1.id }} (Baseline)</div>
+      </div>
+      <div class="card-body">
+        <table class="info-tbl">
+          <tr><td>Target</td><td class="mono accent">{{ scan1.target }}</td></tr>
+          <tr><td>Date</td><td>{{ scan1.timestamp[:19] }}</td></tr>
+          <tr><td>Open Ports</td><td><b>{{ scan1.findings|length }}</b></td></tr>
+          <tr><td>Risk Score</td>
+            <td>
+              {% if scan1.risk_score >= 70 %}<span class="rb rb-critical">{{ scan1.risk_score }}/100</span>
+              {% elif scan1.risk_score >= 40 %}<span class="rb rb-high">{{ scan1.risk_score }}/100</span>
+              {% elif scan1.risk_score >= 20 %}<span class="rb rb-medium">{{ scan1.risk_score }}/100</span>
+              {% else %}<span class="rb rb-low">{{ scan1.risk_score }}/100</span>{% endif %}
+            </td>
+          </tr>
+          <tr><td>OWASP Compliance</td><td><b>{{ scan1.compliance.compliance_score }}%</b></td></tr>
+          <tr><td>Threat Score</td><td><b>{{ scan1.threat_intel.threat_score }}/100</b></td></tr>
+        </table>
+        <div style="margin-top:.75rem">
+          <a href="/report/{{ scan1.id }}" class="btn-sm">View Full Report →</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="ct-icon">◉</span> Scan #{{ scan2.id }} (Latest)</div>
+      </div>
+      <div class="card-body">
+        <table class="info-tbl">
+          <tr><td>Target</td><td class="mono accent">{{ scan2.target }}</td></tr>
+          <tr><td>Date</td><td>{{ scan2.timestamp[:19] }}</td></tr>
+          <tr><td>Open Ports</td><td><b>{{ scan2.findings|length }}</b></td></tr>
+          <tr><td>Risk Score</td>
+            <td>
+              {% set delta_score = scan2.risk_score - scan1.risk_score %}
+              {% if scan2.risk_score >= 70 %}<span class="rb rb-critical">{{ scan2.risk_score }}/100</span>
+              {% elif scan2.risk_score >= 40 %}<span class="rb rb-high">{{ scan2.risk_score }}/100</span>
+              {% elif scan2.risk_score >= 20 %}<span class="rb rb-medium">{{ scan2.risk_score }}/100</span>
+              {% else %}<span class="rb rb-low">{{ scan2.risk_score }}/100</span>{% endif %}
+              {% if delta_score > 0 %}
+                <span style="color:var(--danger);font-size:11px;margin-left:4px">▲ +{{ delta_score }}</span>
+              {% elif delta_score < 0 %}
+                <span style="color:var(--success);font-size:11px;margin-left:4px">▼ {{ delta_score }}</span>
+              {% else %}
+                <span style="color:var(--text3);font-size:11px;margin-left:4px">— no change</span>
+              {% endif %}
+            </td>
+          </tr>
+          <tr><td>OWASP Compliance</td>
+            <td>
+              <b>{{ scan2.compliance.compliance_score }}%</b>
+              {% set cdelta = scan2.compliance.compliance_score - scan1.compliance.compliance_score %}
+              {% if cdelta > 0 %}<span style="color:var(--success);font-size:11px"> ▲ +{{ cdelta }}</span>
+              {% elif cdelta < 0 %}<span style="color:var(--danger);font-size:11px"> ▼ {{ cdelta }}</span>{% endif %}
+            </td>
+          </tr>
+          <tr><td>Threat Score</td>
+            <td><b>{{ scan2.threat_intel.threat_score }}/100</b></td>
+          </tr>
+        </table>
+        <div style="margin-top:.75rem">
+          <a href="/report/{{ scan2.id }}" class="btn-sm">View Full Report →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OVERALL VERDICT -->
+  {% set score_delta = scan2.risk_score - scan1.risk_score %}
+  <div class="card" style="margin-bottom:1.5rem">
+    <div class="card-header">
+      <div class="card-title"><span class="ct-icon">◈</span> Overall Security Posture Change</div>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;gap:2rem;flex-wrap:wrap;align-items:center">
+        <div style="text-align:center">
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Risk Score Change</div>
+          <div style="font-size:32px;font-weight:700;
+            color:{% if score_delta > 0 %}var(--danger){% elif score_delta < 0 %}var(--success){% else %}var(--text3){% endif %}">
+            {% if score_delta > 0 %}+{{ score_delta }}{% else %}{{ score_delta }}{% endif %}
+          </div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">New Vulnerabilities</div>
+          <div style="font-size:32px;font-weight:700;color:{% if new_ports %}var(--danger){% else %}var(--success){% endif %}">
+            {{ new_ports|length }}
+          </div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Resolved Ports</div>
+          <div style="font-size:32px;font-weight:700;color:var(--success)">{{ closed_ports|length }}</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Risk Changes</div>
+          <div style="font-size:32px;font-weight:700;color:var(--warning)">{{ changed_ports|length }}</div>
+        </div>
+        <div style="flex:1;min-width:200px">
+          {% if score_delta > 10 %}
+          <div class="badge badge-danger" style="font-size:12px;padding:.5rem 1rem">
+            ⚠ Security posture WORSENED — immediate action required
+          </div>
+          {% elif score_delta < -10 %}
+          <div class="badge badge-ok" style="font-size:12px;padding:.5rem 1rem">
+            ✓ Security posture IMPROVED — remediation is working
+          </div>
+          {% elif new_ports %}
+          <div class="badge badge-warn" style="font-size:12px;padding:.5rem 1rem">
+            ⚡ New attack surface detected — review new findings
+          </div>
+          {% else %}
+          <div class="badge badge-neutral" style="font-size:12px;padding:.5rem 1rem">
+            — Security posture largely unchanged
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW PORTS (attack surface expanded) -->
+  {% if new_ports %}
+  <div class="card delta-new" style="margin-bottom:1.25rem">
+    <div class="card-header">
+      <div class="card-title"><span class="ct-icon">◈</span> New Vulnerabilities Detected</div>
+      <span class="delta-tag tag-new">{{ new_ports|length }} new</span>
+    </div>
+    <div class="card-body no-pad">
+      <table class="tbl">
+        <thead>
+          <tr><th>Port</th><th>Service</th><th>Risk</th><th>CVSS</th><th>Issue</th><th>Remediation</th></tr>
+        </thead>
+        <tbody>
+          {% for f in new_ports %}
+          <tr>
+            <td class="mono" style="font-weight:600">{{ f.port }}</td>
+            <td>{{ f.service }}</td>
+            <td>
+              {% if f.risk=='CRITICAL' %}<span class="rb rb-critical">CRITICAL</span>
+              {% elif f.risk=='HIGH' %}<span class="rb rb-high">HIGH</span>
+              {% elif f.risk=='MEDIUM' %}<span class="rb rb-medium">MEDIUM</span>
+              {% else %}<span class="rb rb-low">LOW</span>{% endif %}
+            </td>
+            <td class="mono small accent">{{ f.cvss_score if f.cvss_score is defined else '—' }}</td>
+            <td class="small muted">{{ f.issue[:55] }}</td>
+            <td class="small muted">{{ f.fix[:60] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- RESOLVED PORTS (attack surface reduced) -->
+  {% if closed_ports %}
+  <div class="card delta-closed" style="margin-bottom:1.25rem">
+    <div class="card-header">
+      <div class="card-title"><span class="ct-icon">◈</span> Resolved / Closed Ports</div>
+      <span class="delta-tag tag-closed">{{ closed_ports|length }} resolved</span>
+    </div>
+    <div class="card-body no-pad">
+      <table class="tbl">
+        <thead>
+          <tr><th>Port</th><th>Service</th><th>Previous Risk</th><th>Issue</th></tr>
+        </thead>
+        <tbody>
+          {% for f in closed_ports %}
+          <tr>
+            <td class="mono" style="font-weight:600">{{ f.port }}</td>
+            <td>{{ f.service }}</td>
+            <td>
+              {% if f.risk=='CRITICAL' %}<span class="rb rb-critical">CRITICAL</span>
+              {% elif f.risk=='HIGH' %}<span class="rb rb-high">HIGH</span>
+              {% elif f.risk=='MEDIUM' %}<span class="rb rb-medium">MEDIUM</span>
+              {% else %}<span class="rb rb-low">LOW</span>{% endif %}
+            </td>
+            <td class="small muted">{{ f.issue[:80] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- RISK CHANGES -->
+  {% if changed_ports %}
+  <div class="card delta-changed" style="margin-bottom:1.25rem">
+    <div class="card-header">
+      <div class="card-title"><span class="ct-icon">◈</span> Risk Level Changes</div>
+      <span class="delta-tag" style="background:rgba(245,158,11,.1);color:var(--warning)">{{ changed_ports|length }} changed</span>
+    </div>
+    <div class="card-body no-pad">
+      <table class="tbl">
+        <thead>
+          <tr><th>Port</th><th>Service</th><th>Previous Risk</th><th>Current Risk</th><th>Trend</th></tr>
+        </thead>
+        <tbody>
+          {% for c in changed_ports %}
+          <tr>
+            <td class="mono" style="font-weight:600">{{ c.port }}</td>
+            <td>{{ c.service }}</td>
+            <td>
+              {% if c.old_risk=='CRITICAL' %}<span class="rb rb-critical">CRITICAL</span>
+              {% elif c.old_risk=='HIGH' %}<span class="rb rb-high">HIGH</span>
+              {% elif c.old_risk=='MEDIUM' %}<span class="rb rb-medium">MEDIUM</span>
+              {% else %}<span class="rb rb-low">LOW</span>{% endif %}
+            </td>
+            <td>
+              {% if c.new_risk=='CRITICAL' %}<span class="rb rb-critical">CRITICAL</span>
+              {% elif c.new_risk=='HIGH' %}<span class="rb rb-high">HIGH</span>
+              {% elif c.new_risk=='MEDIUM' %}<span class="rb rb-medium">MEDIUM</span>
+              {% else %}<span class="rb rb-low">LOW</span>{% endif %}
+            </td>
+            <td>
+              {% if c.direction == 'escalated' %}
+                <span class="delta-tag tag-worse">▲ Escalated</span>
+              {% else %}
+                <span class="delta-tag tag-better">▼ Improved</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if not new_ports and not closed_ports and not changed_ports %}
+  <div class="empty-state">
+    <div class="empty-icon">✓</div>
+    <p>No differences detected between the two scans. Attack surface is unchanged.</p>
+  </div>
+  {% endif %}
+
+</main>
+</body>
+</html>

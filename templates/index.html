@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INVA — Intelligent Network Vulnerability Analyser</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-brand">
+    <div class="brand-hex">I</div>
+    <span class="brand-name">INVA</span>
+    <span class="brand-tagline">Intelligent Network Vulnerability Analyser</span>
+  </div>
+  <div class="nav-links">
+    <a href="/" class="nav-link active">Dashboard</a>
+  </div>
+</nav>
+
+<main class="container">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">AI-Powered Security Intelligence Platform</div>
+    <h1 class="hero-title">Vulnerability Assessment<br>Redefined</h1>
+    <p class="hero-sub">Scan any IP or domain. Detect vulnerabilities, map compliance, and get AI-driven risk intelligence — instantly.</p>
+
+    <!-- SCAN BOX -->
+    <div class="scan-box">
+      <div class="scan-label">⬡ &nbsp;Target</div>
+      <div class="scan-input-row">
+        <input
+          type="text"
+          id="ip-input"
+          class="scan-input"
+          placeholder="192.168.1.1 or example.com or https://target.io"
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <button class="btn-scan" id="scan-btn" onclick="startScan()">
+          <span id="btn-icon">▶</span>
+          <span id="btn-text">Scan Now</span>
+        </button>
+      </div>
+      <div class="scan-hint">
+        <span>IP Address</span>
+        <span>Hostname</span>
+        <span>Full URL</span>
+      </div>
+
+      <!-- CONSENT -->
+      <div class="consent-box">
+        <label class="consent-label">
+          <input type="checkbox" id="consent-checkbox">
+          <span>I confirm I own or have <b>written permission</b> to scan this target.
+          Unauthorised scanning may be illegal under the Computer Misuse Act and equivalent laws.</span>
+        </label>
+      </div>
+
+      <!-- PROGRESS -->
+      <div id="progress-section" class="progress-section hidden">
+        <div class="step-bar" id="step-bar">
+          <div class="step" id="s1"></div>
+          <div class="step" id="s2"></div>
+          <div class="step" id="s3"></div>
+          <div class="step" id="s4"></div>
+          <div class="step" id="s5"></div>
+          <div class="step" id="s6"></div>
+        </div>
+        <div class="radar-wrap">
+          <div class="radar">
+            <div class="radar-ring"></div>
+            <div class="radar-ring"></div>
+            <div class="radar-ring"></div>
+            <div class="radar-dot"></div>
+          </div>
+          <div>
+            <div class="progress-status"><strong id="status-text">Initialising scan...</strong></div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px" id="status-sub">Preparing intelligence modules</div>
+          </div>
+        </div>
+        <div class="progress-log" id="progress-log"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURE PILLS -->
+  <div class="feature-row">
+    <div class="feature-pill">
+      <div class="fp-icon">🤖</div>
+      <div>
+        <div style="font-weight:600;color:var(--text);font-size:12px">AI / ML Risk Engine</div>
+        <div style="font-size:10px;color:var(--text3)">RandomForest CVE classifier</div>
+      </div>
+    </div>
+    <div class="feature-pill">
+      <div class="fp-icon">🌐</div>
+      <div>
+        <div style="font-weight:600;color:var(--text);font-size:12px">Threat Intelligence</div>
+        <div style="font-size:10px;color:var(--text3)">Live blacklists + geo-IP</div>
+      </div>
+    </div>
+    <div class="feature-pill">
+      <div class="fp-icon">🛡</div>
+      <div>
+        <div style="font-weight:600;color:var(--text);font-size:12px">OWASP Compliance</div>
+        <div style="font-size:10px;color:var(--text3)">Full Top 10 2021 mapping</div>
+      </div>
+    </div>
+    <div class="feature-pill">
+      <div class="fp-icon">📄</div>
+      <div>
+        <div style="font-weight:600;color:var(--text);font-size:12px">PDF Intelligence Report</div>
+        <div style="font-size:10px;color:var(--text3)">Charts · findings · remediation</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  {% set total = scans|length %}
+  {% set high_risk = scans | selectattr('risk_score', 'ge', 70) | list | length %}
+  {% set total_ports = scans | sum(attribute='open_ports') %}
+  {% set avg_score = (scans | sum(attribute='risk_score') / total) | round(0) | int if total > 0 else 0 %}
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon">🔍</div>
+      <div class="stat-num">{{ total }}</div>
+      <div class="stat-label">Total Scans</div>
+    </div>
+    <div class="stat-card s-danger">
+      <div class="stat-icon">⚠</div>
+      <div class="stat-num" style="color:var(--danger)">{{ high_risk }}</div>
+      <div class="stat-label">High Risk Targets</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-num" style="color:var(--warning)">{{ avg_score }}</div>
+      <div class="stat-label">Avg Risk Score</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🔓</div>
+      <div class="stat-num">{{ total_ports }}</div>
+      <div class="stat-label">Total Ports Found</div>
+    </div>
+  </div>
+
+  <!-- SCAN HISTORY -->
+  {% if scans %}
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="ct-icon">◈</span> Scan History</div>
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <span class="badge badge-neutral">{{ scans|length }} records</span>
+        <button class="btn-sm" id="compare-btn" onclick="compareSelected()" style="display:none">⇄ Compare Selected</button>
+      </div>
+    </div>
+    <div class="card-body no-pad">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th style="width:2rem"><input type="checkbox" id="select-all" onclick="toggleAll(this)" title="Select all"></th>
+            <th>#</th>
+            <th>Target</th>
+            <th>Timestamp</th>
+            <th>Open Ports</th>
+            <th>Risk Score</th>
+            <th>Report</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for scan in scans %}
+          <tr>
+            <td><input type="checkbox" class="scan-check" value="{{ scan.id }}" onchange="updateCompareBtn()"></td>
+            <td class="muted mono" style="font-size:11px">#{{ scan.id }}</td>
+            <td class="mono" style="font-size:12px;color:var(--accent)">{{ scan.target }}</td>
+            <td class="muted small">{{ scan.timestamp[:19] }}</td>
+            <td class="mono">{{ scan.open_ports }}</td>
+            <td>
+              {% if scan.risk_score >= 70 %}
+                <span class="rb rb-critical">{{ scan.risk_score }}/100</span>
+              {% elif scan.risk_score >= 40 %}
+                <span class="rb rb-high">{{ scan.risk_score }}/100</span>
+              {% elif scan.risk_score >= 20 %}
+                <span class="rb rb-medium">{{ scan.risk_score }}/100</span>
+              {% else %}
+                <span class="rb rb-low">{{ scan.risk_score }}/100</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="/report/{{ scan.id }}" class="btn-sm">View Report →</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <p class="small muted" style="text-align:center;margin-top:.5rem">
+    Select exactly 2 scans and click <b>Compare Selected</b> to see a delta analysis.
+  </p>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">🛡</div>
+    <p>No scans yet. Enter a target above to run your first assessment.</p>
+  </div>
+  {% endif %}
+
+</main>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+function updateCompareBtn() {
+  const checked = document.querySelectorAll('.scan-check:checked');
+  const btn = document.getElementById('compare-btn');
+  if (btn) btn.style.display = checked.length === 2 ? 'inline-block' : 'none';
+}
+function toggleAll(src) {
+  document.querySelectorAll('.scan-check').forEach(cb => { cb.checked = src.checked; });
+  updateCompareBtn();
+}
+function compareSelected() {
+  const ids = [...document.querySelectorAll('.scan-check:checked')].map(cb => cb.value);
+  if (ids.length === 2) window.location.href = `/compare/${ids[0]}/${ids[1]}`;
+}
+</script>
+</body>
+</html>
