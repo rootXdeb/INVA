@@ -47,8 +47,7 @@ INVA provides a complete vulnerability assessment workflow that includes:
 
 ## System Architecture
 
-```text
-Target Host
+ Target Host
       │
       ▼
  Network Scanner
@@ -71,6 +70,6 @@ Target Host
       ▼
  Dashboard & Reports
 
-Disclaimer
 
+Disclaimer:
 INVA is intended strictly for educational, research, and authorized security testing purposes. Users must obtain proper permission before scanning or assessing any network, system, or device. Unauthorized scanning may violate organizational policies and local laws.
