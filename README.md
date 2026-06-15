@@ -44,31 +44,76 @@ INVA provides a complete vulnerability assessment workflow that includes:
 - Historical scan tracking
 
 ---
+## Installation and Usage
 
-## System Architecture
+### Installation
 
- Target Host
-      │
-      ▼
- Network Scanner
-      │
-      ▼
- Service Detection
-      │
-      ▼
- Vulnerability Analyzer
-      │
-      ▼
- Threat Intelligence Engine
-      │
-      ▼
- Risk Assessment Engine
-      │
-      ▼
- Database Storage
-      │
-      ▼
- Dashboard & Reports
+Clone the repository and navigate to the project directory:
+
+```bash
+git clone https://github.com/rootXdeb/INVA.git
+cd INVA
+```
+
+Create and activate a virtual environment:
+
+**Linux/macOS**
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+**Windows**
+
+```cmd
+python -m venv venv
+venv\Scripts\activate
+```
+
+Install the required dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Start the application:
+
+```bash
+python main.py
+```
+
+The application will be available at:
+
+```text
+http://127.0.0.1:5000
+```
+
+---
+
+### Usage
+
+1. Open the web interface in your browser.
+2. Enter a target IP address, domain name, or URL.
+3. Click **Start Scan** to begin the assessment.
+4. The platform will automatically:
+
+   * Scan open ports
+   * Detect running services
+   * Analyze potential vulnerabilities
+   * Calculate risk scores
+   * Perform threat intelligence checks
+   * Map findings to OWASP Top 10 categories
+5. Review the generated results and recommendations on the dashboard.
+6. Export the scan results as **PDF** or **JSON** reports for documentation and further analysis.
+
+**Example Targets**
+
+```text
+192.168.1.1
+scanme.nmap.org
+https://example.com
+```
 
 
 Disclaimer:
